@@ -32,7 +32,7 @@ function Twixt:update(dt)
     end
 
     for key, value in pairs(settings) do
-      if not internalkeys[key] then
+      if not internalkeys[key] and not settings.__dead then
         local t = type(value)
         if t == "function" then
           object[key] = value(object, settings.easing(settings.__time, 0, 1, settings.duration))
@@ -48,17 +48,20 @@ function Twixt:update(dt)
         end
 
         settings.__time = math.min(settings.__time + (self.timescale * dt), settings.duration)
-        if settings.__time >= settings.duration then
-          if settings.onComplete and not settings.__dead then
-            settings.onComplete(v)
-            settings.__dead = true
-          end
-          for j, k in ipairs(self.tweens) do
-            if k[1] == settings and k[2] == object then
-              table.remove(self.tweens, j)
-            end
+      end
+
+      if settings.__time >= settings.duration then
+        if settings.onComplete and not settings.__dead then
+          settings.onComplete(v)
+          settings.__dead = true
+        end
+        for j, k in ipairs(self.tweens) do
+          if k[1] == settings and k[2] == object then
+            table.remove(self.tweens, j)
+            break
           end
         end
+        break
       end
     end
   end
