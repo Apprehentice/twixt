@@ -33,7 +33,7 @@ function Twixt:update(dt)
       if not internalkeys[key] then
         local t = type(value)
         if t == "function" then
-          value(object, t.easings[settings.easing](settings.__time, 0, 1, settings.duration))
+          object[key] = value(object, t.easings[settings.easing](settings.__time, 0, 1, settings.duration))
         elseif t == "number" then
           if not settings.__initial[key] then
             settings.__initial[key] = object[key]
