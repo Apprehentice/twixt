@@ -4,6 +4,7 @@ local internalkeys = {
   __time = true,
   __initial = true,
   __change = true,
+  __dead = true,
   duration = true,
   easing = true,
   onComplete = true
@@ -24,6 +25,7 @@ function Twixt:update(dt)
     assert(type(settings.duration) == "number", "invalid duration")
     if not settings.__time then settings.__time = 0 end
     if not settings.easing then settings.easing = require("twixt.easing").linear end
+    if not settings.__dead then settings.__dead = false end
     if not settings.__initial then
      settings.__initial = {}
      settings.__change = {}
@@ -33,7 +35,7 @@ function Twixt:update(dt)
       if not internalkeys[key] then
         local t = type(value)
         if t == "function" then
-          object[key] = value(object, t.easings[settings.easing](settings.__time, 0, 1, settings.duration))
+          object[key] = value(object, settings.easing(settings.__time, 0, 1, settings.duration))
         elseif t == "number" then
           if not settings.__initial[key] then
             settings.__initial[key] = object[key]
@@ -47,10 +49,15 @@ function Twixt:update(dt)
 
         settings.__time = math.min(settings.__time + (self.timescale * dt), settings.duration)
         if settings.__time >= settings.duration then
-          if settings.onComplete then
+          if settings.onComplete and not settings.__dead then
             settings.onComplete(v)
+            settings.__dead = true
           end
-          table.remove(self.tweens, i)
+          for j, k in ipairs(self.tweens) do
+            if k[1] == settings and k[2] == object then
+              table.remove(self.tweens, j)
+            end
+          end
         end
       end
     end
